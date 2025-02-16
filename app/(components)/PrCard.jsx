@@ -3,23 +3,49 @@ import Image from "next/image";
 import { FaHeart, FaShoppingCart } from "react-icons/fa";
 import { useState } from "react";
 import Link from "next/link";
-import useStore from '@/app/store'; // Import the Zustand store
+import useStore from '@/app/store'; 
+import { toast } from 'react-hot-toast';
 
 const PrCard = ({name, price, image, colors, category, id }) => {
   const [isLiked, setIsLiked] = useState(false);
-  const addToCart = useStore((state) => state.addToCart); // Get the addToCart function
+  const addToCart = useStore((state) => state.addToCart); 
 
   const handleHeartClick = () => {
     setIsLiked(!isLiked);
+    toast.success(isLiked ? 'Removed from Wishlist' : 'Added to Wishlist', {
+      style: {
+        border: '1px solid #000',
+        borderRadius: '0px',
+        padding: '16px',
+        color: '#000',
+        backgroundColor: '#fff',
+        fontFamily: 'Julius Sans One, sans-serif',
+      },
+      iconTheme: {
+        primary: '#000',
+        secondary: '#fff',
+      },
+    });
   };
 
   const handleAddToCart = (e) => {
     e.stopPropagation();
     e.preventDefault();
     addToCart({ id, name, price, image, colors, category });
+    toast.success('Added to Cart', {
+      style: {
+        border: '1px solid #000',
+        padding: '16px',
+        color: '#000',
+        fontFamily: 'Julius Sans One, sans-serif',
+      },
+      iconTheme: {
+        primary: '#000',
+        secondary: '#fff',
+      },
+    });
   };
 
-  // Color mapping object
   const colorMap = {
     black: "bg-black",
     brown: "bg-amber-800",

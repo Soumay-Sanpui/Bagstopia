@@ -28,8 +28,8 @@ const Cart = () => {
       ) : (
         <div className="w-full max-w-4xl">
           <ul className="space-y-4 mb-8">
-            {cart.map((item) => (
-              <li key={item.id} className="flex items-center border p-4 rounded-md shadow-md">
+            {cart.map((item, index) => (
+              <li key={index} className="flex items-center border p-4 rounded-md shadow-md">
                 <img src={item.image} alt={item.name} className="w-24 h-24 object-cover rounded-md mr-6" />
                 <div className="flex-1">
                   <h3 className="text-lg font-semibold">{item.name}</h3>
@@ -71,9 +71,12 @@ const Cart = () => {
               <span className="text-2xl font-bold">₹{total}</span>
             </div>
             <div className="flex gap-4">
-              <button className="flex-1 bg-hvr text-white py-3 px-6 rounded-sm hover:bg-opacity-90 transition-colors">
+              <Link 
+                href="/checkout"
+                className="flex-1 text-center bg-hvr text-white py-3 px-6 rounded-sm hover:bg-opacity-90 transition-colors"
+              >
                 Proceed to Checkout
-              </button>
+              </Link>
               <Link 
                 href="/"
                 className="flex-1 text-center border border-hvr py-3 px-6 rounded-sm hover:bg-hvr hover:text-white transition-colors"
