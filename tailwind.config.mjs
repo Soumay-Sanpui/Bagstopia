@@ -7,9 +7,20 @@ export default {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        poppins: ['Poppins', 'sans-serif'],
+        julius: ['Julius Sans One', 'sans-serif'],
+      },
       colors: {
         background: "var(--background)",
         foreground: "var(--foreground)",
+        hvr: '#C5A55A',
+        navy: {
+          800: '#000080',
+        },
+        olive: {
+          700: '#556B2F',
+        }
       },
     },
   },

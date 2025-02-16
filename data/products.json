@@ -1,0 +1,79 @@
+{
+  "products": [
+    {
+      "id": "1",
+      "name": "Classic Leather Tote",
+      "price": "2999",
+      "image": "https://www.flipay.in/storage/soft-luggage/614zspstkal-sl1500.jpg",
+      "colors": ["black", "brown", "gray"],
+      "category": "tote"
+    },
+    {
+      "id": "2",
+      "name": "Business Briefcase",
+      "price": "3499",
+      "image": "https://www.flipay.in/storage/soft-luggage/614zspstkal-sl1500.jpg",
+      "colors": ["black", "navy"],
+      "category": "briefcase"
+    },
+    {
+      "id": "3",
+      "name": "Travel Backpack",
+      "price": "1999",
+      "image": "https://www.flipay.in/storage/soft-luggage/614zspstkal-sl1500.jpg",
+      "colors": ["black", "blue", "red"],
+      "category": "backpack"
+    },
+    {
+      "id": "4",
+      "name": "Crossbody Bag",
+      "price": "1499",
+      "image": "https://www.flipay.in/storage/soft-luggage/614zspstkal-sl1500.jpg",
+      "colors": ["black", "brown", "pink"],
+      "category": "crossbody"
+    },
+    {
+      "id": "5",
+      "name": "Weekend Duffle",
+      "price": "2499",
+      "image": "https://www.flipay.in/storage/soft-luggage/614zspstkal-sl1500.jpg",
+      "colors": ["navy", "olive", "gray"],
+      "category": "duffle"
+    },
+    {
+      "id": "6",
+      "name": "Mini Shoulder Bag",
+      "price": "1299",
+      "image": "https://www.flipay.in/storage/soft-luggage/614zspstkal-sl1500.jpg",
+      "colors": ["black", "red", "white"],
+      "category": "shoulder"
+    },
+    {
+      "id": "7",
+      "name": "Laptop Sleeve",
+      "price": "999",
+      "image": "https://www.flipay.in/storage/soft-luggage/614zspstkal-sl1500.jpg",
+      "colors": ["black", "gray"],
+      "category": "sleeve"
+    },
+    {
+      "id": "8",
+      "name": "Executive Messenger",
+      "price": "1799",
+      "image": "https://www.flipay.in/storage/soft-luggage/614zspstkal-sl1500.jpg",
+      "colors": ["black", "brown"],
+      "category": "messenger"
+    }
+  ],
+  "categories": [
+    "all",
+    "tote",
+    "briefcase",
+    "backpack",
+    "crossbody",
+    "duffle",
+    "shoulder",
+    "sleeve",
+    "messenger"
+  ]
+} 
