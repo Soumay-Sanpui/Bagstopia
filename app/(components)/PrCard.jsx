@@ -13,8 +13,10 @@ const PrCard = ({name, price, image, colors, category, id }) => {
     setIsLiked(!isLiked);
   };
 
-  const handleAddToCart = () => {
-    addToCart({ id, name, price, image, colors, category }); // Add product to cart
+  const handleAddToCart = (e) => {
+    e.stopPropagation();
+    e.preventDefault();
+    addToCart({ id, name, price, image, colors, category });
   };
 
   // Color mapping object
@@ -45,7 +47,7 @@ const PrCard = ({name, price, image, colors, category, id }) => {
             <FaShoppingCart 
               title="Add to Cart" 
               className="text-black cursor-pointer" 
-              onClick={(e)=> {e.stopPropagation(); handleAddToCart();}} 
+              onClick={handleAddToCart}
             />
           </div>
         </div>
