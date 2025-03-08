@@ -4,12 +4,15 @@ import Image from 'next/image';
 import { FaHeart, FaShoppingCart, FaTruck, FaExchangeAlt, FaShieldAlt } from 'react-icons/fa';
 import productsData from '@/data/products.json';
 import React from 'react';
+import {toast} from "react-hot-toast";
+import useStore from "@/app/store";
 
 const ProductPage = ({ params }) => {
   const { id } = React.use(params);
   const [product, setProduct] = useState(null);
   const [selectedColor, setSelectedColor] = useState(null);
   const [isLiked, setIsLiked] = useState(false);
+  const addToCart = useStore((state) => state.addToCart);
 
   useEffect(() => {
     const foundProduct = productsData.products.find(p => p.id === id);
@@ -18,6 +21,42 @@ const ProductPage = ({ params }) => {
       setSelectedColor(foundProduct.colors[0]);
     }
   }, [id]);
+
+  const handleHeartClick = () => {
+    setIsLiked(!isLiked);
+    toast.success(isLiked ? 'Removed from Wishlist' : 'Added to Wishlist', {
+      style: {
+        border: '1px solid #000',
+        borderRadius: '0px',
+        padding: '16px',
+        color: '#000',
+        backgroundColor: '#fff',
+        fontFamily: 'Julius Sans One, sans-serif',
+      },
+      iconTheme: {
+        primary: '#000',
+        secondary: '#fff',
+      },
+    });
+  };
+
+  const handleAddToCart = (e) => {
+    e.stopPropagation();
+    e.preventDefault();
+    addToCart({ id, name, price, image, colors, category });
+    toast.success('Added to Cart', {
+      style: {
+        border: '1px solid #000',
+        padding: '16px',
+        color: '#000',
+        fontFamily: 'Julius Sans One, sans-serif',
+      },
+      iconTheme: {
+        primary: '#000',
+        secondary: '#fff',
+      },
+    });
+  };
 
   if (!product) return <div>Loading...</div>;
 
@@ -67,7 +106,7 @@ const ProductPage = ({ params }) => {
                 >
                   <FaHeart className={isLiked ? 'text-red-500' : 'text-black'} />
                 </button>
-                <button className="p-2 rounded-full border border-black">
+                <button onClick={handleAddToCart} className="p-2 rounded-full border border-black">
                   <FaShoppingCart className="text-black" />
                 </button>
               </div>
@@ -115,7 +154,7 @@ const ProductPage = ({ params }) => {
 
             {/* Action Buttons */}
             <div className="flex gap-4">
-              <button className="flex-1 py-3 px-6 bg-hvr text-white hover:bg-opacity-90 transition-colors">
+              <button onClick={handleAddToCart} className="flex-1 py-3 px-6 bg-hvr text-white hover:bg-opacity-90 transition-colors">
                 Add to Cart
               </button>
               <button className="flex-1 py-3 px-6 border border-hvr hover:bg-hvr hover:text-white transition-colors">
