@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import api from '../utils/api';
 
 const user = (set) => ({
   user: null,
@@ -67,22 +68,107 @@ const useStore = create(
       logout: () => set({ user: null, isAuthenticated: false }),
       
       // User profile actions
-      updateUserAddress: (addressData) => 
+      updateUserProfile: (profileData) => 
         set((state) => ({
           user: {
             ...state.user,
-            address: addressData
+            ...profileData
           }
         })),
       
-      deleteUserAddress: () => 
-        set((state) => ({
-          user: {
-            ...state.user,
-            address: null
-          }
-        })),
-        
+      // Address actions
+      addAddress: async (addressData) => {
+        try {
+          const response = await api.post('/address', addressData);
+          set((state) => ({
+            user: {
+              ...state.user,
+              addresses: state.user.addresses 
+                ? [...state.user.addresses, response.data]
+                : [response.data]
+            }
+          }));
+          return { success: true, data: response.data };
+        } catch (error) {
+          console.error('Add address error:', error);
+          return { success: false, error: error.response?.data?.message || 'Failed to add address' };
+        }
+      },
+      
+      updateAddress: async (addressId, addressData) => {
+        try {
+          const response = await api.put(`/address/${addressId}`, addressData);
+          set((state) => ({
+            user: {
+              ...state.user,
+              addresses: state.user.addresses?.map(addr => 
+                addr._id === addressId ? response.data : addr
+              )
+            }
+          }));
+          return { success: true, data: response.data };
+        } catch (error) {
+          console.error('Update address error:', error);
+          return { success: false, error: error.response?.data?.message || 'Failed to update address' };
+        }
+      },
+      
+      deleteAddress: async (addressId) => {
+        try {
+          await api.delete(`/address/${addressId}`);
+          set((state) => ({
+            user: {
+              ...state.user,
+              addresses: state.user.addresses?.filter(addr => addr._id !== addressId)
+            }
+          }));
+          return { success: true };
+        } catch (error) {
+          console.error('Delete address error:', error);
+          return { success: false, error: error.response?.data?.message || 'Failed to delete address' };
+        }
+      },
+      
+      setDefaultAddress: async (addressId) => {
+        try {
+          const response = await api.patch(`/address/${addressId}/default`);
+          set((state) => ({
+            user: {
+              ...state.user,
+              addresses: state.user.addresses?.map(addr => ({
+                ...addr,
+                isDefault: addr._id === addressId
+              }))
+            }
+          }));
+          return { success: true, data: response.data };
+        } catch (error) {
+          console.error('Set default address error:', error);
+          return { success: false, error: error.response?.data?.message || 'Failed to set default address' };
+        }
+      },
+      
+      // Order actions
+      createOrder: async (orderData) => {
+        try {
+          const response = await api.post('/order', orderData);
+          return { success: true, data: response.data };
+        } catch (error) {
+          console.error('Create order error:', error);
+          return { success: false, error: error.response?.data?.message || 'Failed to create order' };
+        }
+      },
+      
+      cancelOrder: async (orderId) => {
+        try {
+          const response = await api.put(`/order/${orderId}/cancel`);
+          return { success: true, data: response.data };
+        } catch (error) {
+          console.error('Cancel order error:', error);
+          return { success: false, error: error.response?.data?.message || 'Failed to cancel order' };
+        }
+      },
+      
       // Search actions
       setSearchTerm: (term) => set({ searchTerm: term }),
       clearSearch: () => set({ searchTerm: '' }),
@@ -96,17 +182,18 @@ const useStore = create(
           }
         })),
       
-      clearFilters: () => set({
-        filters: {
-          categories: [],
-          priceRange: { min: 0, max: 50000 },
-          rating: null,
-        }
-      }),
+      clearFilters: () => 
+        set({
+          filters: {
+            category: null,
+            priceRange: { min: 0, max: 50000 },
+            rating: null
+          }
+        }),
       ...user(set),
     }),
     {
-      name: 'bagstopia-storage',
+      name: 'zustand-store'
     }
   )
 );

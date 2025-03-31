@@ -57,12 +57,32 @@ const Login = () => {
       return;
     }
     
-    const loginReq = await axios.post("http://localhost:5000/api/user/login", {
-      email: formData.email,
-      password: formData.password
-    });
-    if(loginReq.status === 200) {
-      navigate("/products")
+    try {
+      const loginReq = await axios.post("http://localhost:5000/api/user/login", {
+        email: formData.email,
+        password: formData.password
+      });
+      
+      if(loginReq.status === 200) {
+        const { user, token } = loginReq.data;
+        
+        // Format user data to match the structure used in the app
+        const userData = {
+          id: user._id,
+          firstName: user.firstname,
+          lastName: user.lastname,
+          email: user.email,
+          isAdmin: user.isAdmin,
+          token: token
+        };
+        
+        // Save user data to store
+        login(userData);
+        navigate("/products");
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      setError(error.response?.data?.message || 'Login failed. Please try again.');
     }
   };
   

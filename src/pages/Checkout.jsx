@@ -1,36 +1,102 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import useStore from '../store/useStore';
+import api from '../utils/api';
 
 const Checkout = () => {
   const { cart, user } = useStore();
   const navigate = useNavigate();
+  const [addresses, setAddresses] = useState([]);
+  const [selectedAddressId, setSelectedAddressId] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  
   const [shippingAddress, setShippingAddress] = useState({
     firstName: user?.firstName || '',
     lastName: user?.lastName || '',
-    address: user?.address?.street || '',
-    city: user?.address?.city || '',
-    state: user?.address?.state || '',
-    zipCode: user?.address?.zipCode || '',
-    country: user?.address?.country || '',
-    phone: user?.phone || '',
+    address: '',
+    city: '',
+    state: '',
+    zipCode: '',
+    country: '',
+    phone: '',
   });
   
   const [billingAddress, setBillingAddress] = useState({
     firstName: user?.firstName || '',
     lastName: user?.lastName || '',
-    address: user?.address?.street || '',
-    city: user?.address?.city || '',
-    state: user?.address?.state || '',
-    zipCode: user?.address?.zipCode || '',
-    country: user?.address?.country || '',
-    phone: user?.phone || '',
+    address: '',
+    city: '',
+    state: '',
+    zipCode: '',
+    country: '',
+    phone: '',
   });
   
   const [sameAsShipping, setSameAsShipping] = useState(true);
   const [shippingMethod, setShippingMethod] = useState('standard');
+  
+  // Fetch user addresses when component mounts
+  useEffect(() => {
+    const fetchAddresses = async () => {
+      try {
+        setLoading(true);
+        const response = await api.get('/address');
+        setAddresses(response.data);
+        
+        // If there's a default address, select it, otherwise select the first one
+        const defaultAddress = response.data.find(addr => addr.isDefault);
+        if (defaultAddress) {
+          setSelectedAddressId(defaultAddress._id);
+          fillAddressForm(defaultAddress);
+        } else if (response.data.length > 0) {
+          setSelectedAddressId(response.data[0]._id);
+          fillAddressForm(response.data[0]);
+        }
+      } catch (err) {
+        console.error('Error fetching addresses:', err);
+        setError('Failed to load addresses. Please try again.');
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchAddresses();
+  }, []);
+  
+  // Fill address form with selected address data
+  const fillAddressForm = (address) => {
+    const newShippingAddress = {
+      firstName: user?.firstName || '',
+      lastName: user?.lastName || '',
+      address: address.street || '',
+      city: address.city || '',
+      state: address.state || '',
+      zipCode: address.zipCode || '',
+      country: address.country || '',
+      phone: address.phone || user?.phone || '',
+    };
+    
+    setShippingAddress(newShippingAddress);
+    if (sameAsShipping) {
+      setBillingAddress(newShippingAddress);
+    }
+  };
+  
+  // Handle address selection change
+  const handleAddressSelect = (e) => {
+    const addressId = e.target.value;
+    setSelectedAddressId(addressId);
+    
+    if (addressId) {
+      const selectedAddress = addresses.find(addr => addr._id === addressId);
+      if (selectedAddress) {
+        fillAddressForm(selectedAddress);
+      }
+    }
+  };
   
   // Calculate totals
   const subtotal = cart.reduce((total, item) => total + (item.price * item.quantity), 0);
@@ -96,6 +162,14 @@ const Checkout = () => {
       }
     }
     
+    // Save shipping address to session storage
+    try {
+      sessionStorage.setItem('shippingAddress', JSON.stringify(shippingAddress));
+      console.log('Shipping address saved to session storage');
+    } catch (error) {
+      console.error('Error saving shipping address to session storage:', error);
+    }
+    
     // If all validations pass, proceed to payment
     navigate('/payment');
   };
@@ -132,6 +206,29 @@ const Checkout = () => {
                 {/* Shipping Information */}
                 <div className="bg-white rounded-lg shadow-md p-6 mb-8">
                   <h2 className="text-xl font-semibold mb-4">Shipping Information</h2>
+                  
+                  {addresses.length > 0 && (
+                    <div className="mb-6">
+                      <label htmlFor="addressSelect" className="block text-gray-700 mb-2">Select a Saved Address</label>
+                      <select
+                        id="addressSelect"
+                        value={selectedAddressId}
+                        onChange={handleAddressSelect}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        {addresses.map(address => (
+                          <option key={address._id} value={address._id}>
+                            {address.street}, {address.city}, {address.state} {address.zipCode} {address.isDefault ? '(Default)' : ''}
+                          </option>
+                        ))}
+                      </select>
+                      <div className="mt-2">
+                        <Link to="/account" className="text-blue-600 hover:text-blue-800 text-sm">
+                          Manage your addresses
+                        </Link>
+                      </div>
+                    </div>
+                  )}
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                     <div>

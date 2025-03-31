@@ -1,21 +1,47 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useLocation, useNavigate, Link } from 'react-router';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import api from '../utils/api';
 
 const OrderConfirmation = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
+  const [order, setOrder] = useState(null);
+  const [error, setError] = useState('');
   
   // Get order details from location state
-  const { orderNumber, orderDate, total } = location.state || {};
+  const { orderId, orderNumber, orderDate, total } = location.state || {};
   
   // If no order details, redirect to home
   useEffect(() => {
-    if (!orderNumber) {
+    if (!orderId && !orderNumber) {
       navigate('/');
+      return;
     }
-  }, [orderNumber, navigate]);
+    
+    // Fetch complete order data if we have an orderId
+    const fetchOrderDetails = async () => {
+      if (orderId) {
+        try {
+          setLoading(true);
+          const response = await api.get(`/order/${orderId}`);
+          setOrder(response.data);
+          setError('');
+        } catch (err) {
+          console.error('Error fetching order details:', err);
+          setError('Failed to load order details');
+        } finally {
+          setLoading(false);
+        }
+      } else {
+        setLoading(false);
+      }
+    };
+    
+    fetchOrderDetails();
+  }, [orderId, orderNumber, navigate]);
   
   // Format date to readable format
   const formatDate = (dateString) => {
@@ -28,8 +54,8 @@ const OrderConfirmation = () => {
     });
   };
   
-  // If no order details, show loading (will redirect in useEffect)
-  if (!orderNumber) {
+  // If loading, show loading spinner
+  if (loading) {
     return (
       <div className="min-h-screen flex flex-col">
         <Navbar />
@@ -40,6 +66,34 @@ const OrderConfirmation = () => {
       </div>
     );
   }
+  
+  // If error, show error message
+  if (error) {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <Navbar />
+        <div className="container mx-auto px-4 py-16 flex-grow flex items-center justify-center flex-col">
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+            {error}
+          </div>
+          <Link 
+            to="/" 
+            className="bg-blue-600 text-white px-8 py-3 rounded-md hover:bg-blue-700 transition-colors inline-block font-semibold mt-4"
+          >
+            Return to Home
+          </Link>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+  
+  // Use order data if available, otherwise fall back to location state
+  const displayOrderNumber = order ? order._id.substring(order._id.length - 8) : orderNumber;
+  const displayOrderDate = order ? order.createdAt : orderDate;
+  const displayTotal = order ? order.total : total;
+  const displayPaymentMethod = order ? order.paymentMethod : 'Credit Card';
+  const displayShippingMethod = (displayTotal > 5000) ? 'Standard Shipping (Free)' : 'Standard Shipping (₹300)';
   
   return (
     <div className="min-h-screen flex flex-col">
@@ -66,29 +120,27 @@ const OrderConfirmation = () => {
             <div className="space-y-4">
               <div className="flex justify-between">
                 <span className="text-gray-600">Order Number:</span>
-                <span className="font-medium">{orderNumber}</span>
+                <span className="font-medium">{displayOrderNumber}</span>
               </div>
               
               <div className="flex justify-between">
                 <span className="text-gray-600">Order Date:</span>
-                <span className="font-medium">{formatDate(orderDate)}</span>
+                <span className="font-medium">{formatDate(displayOrderDate)}</span>
               </div>
               
               <div className="flex justify-between">
                 <span className="text-gray-600">Order Total:</span>
-                <span className="font-medium">₹{parseFloat(total).toLocaleString('en-IN', { maximumFractionDigits: 0 })}</span>
+                <span className="font-medium">₹{parseFloat(displayTotal).toLocaleString('en-IN', { maximumFractionDigits: 0 })}</span>
               </div>
               
               <div className="flex justify-between">
                 <span className="text-gray-600">Payment Method:</span>
-                <span className="font-medium">Credit Card</span>
+                <span className="font-medium">{displayPaymentMethod}</span>
               </div>
               
               <div className="flex justify-between">
                 <span className="text-gray-600">Shipping Method:</span>
-                <span className="font-medium">
-                  {parseFloat(total) > 5000 ? 'Standard Shipping (Free)' : 'Standard Shipping (₹300)'}
-                </span>
+                <span className="font-medium">{displayShippingMethod}</span>
               </div>
             </div>
           </div>
@@ -167,9 +219,12 @@ const OrderConfirmation = () => {
             </div>
             
             <div className="pt-4">
+              <Link to="/account" className="bg-blue-600 text-white px-8 py-3 rounded-md hover:bg-blue-700 transition-colors inline-block font-semibold mr-4">
+                View My Orders
+              </Link>
               <Link 
                 to="/" 
-                className="bg-blue-600 text-white px-8 py-3 rounded-md hover:bg-blue-700 transition-colors inline-block font-semibold"
+                className="bg-gray-200 text-gray-800 px-8 py-3 rounded-md hover:bg-gray-300 transition-colors inline-block font-semibold"
               >
                 Continue Shopping
               </Link>
