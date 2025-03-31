@@ -81,15 +81,15 @@ const Home = () => {
           {/* <div className="absolute inset-0 bg-gradient-to-r from-[#2540b8] via-[#2540b880] to-transparent"></div> */}
           <div className="absolute inset-0 opacity-40">
             <div className="h-full w-full" style={{ 
-              backgroundImage: "linear-gradient(30deg, #ff3e3e 12%, transparent 12.5%, transparent 87%, #ff3e3e 87.5%, #ff3e3e), linear-gradient(150deg, #ff3e3e 12%, transparent 12.5%, transparent 87%, #ff3e3e 87.5%, #ff3e3e), linear-gradient(30deg, #ff3e3e 12%, transparent 12.5%, transparent 87%, #ff3e3e 87.5%, #ff3e3e), linear-gradient(150deg, #ff3e3e 12%, transparent 12.5%, transparent 87%, #ff3e3e 87.5%, #ff3e3e), linear-gradient(60deg, #ff3e3e77 25%, transparent 25.5%, transparent 75%, #ff3e3e77 75%, #ff3e3e77), linear-gradient(60deg, #ff3e3e77 25%, transparent 25.5%, transparent 75%, #ff3e3e77 75%, #ff3e3e77)",
+              backgroundColor: 'black',
               backgroundSize: "80px 140px",
               backgroundPosition: "0 0, 0 0, 40px 70px, 40px 70px, 0 0, 40px 70px"
             }}></div>
           </div>
         </div>
-        <div className="relative container mx-auto px-4 h-full flex items-center">
+        <div className="text-center justify-center relative container mx-auto px-4 h-full flex items-center">
           <div className="max-w-2xl animate-fade-in">
-            <h1 className="text-4xl md:text-5xl font-display text-white mb-6 leading-tight">
+            <h1 className="text-4xl font-bold md:text-5xl font-display text-white mb-6 leading-tight">
               Discover Your Perfect Bag
             </h1>
             <p className="text-lg md:text-xl text-white mb-8 leading-relaxed">
@@ -144,7 +144,7 @@ const Home = () => {
               className="group relative h-48 md:h-64 rounded-lg overflow-hidden shadow-paper hover:shadow-lg transition-shadow duration-200"
             >
               <img
-                src="https://images-eu.ssl-images-amazon.com/images/I/814iogRTu5L.jpg"
+                src="https://images-na.ssl-images-amazon.com/images/I/91kh7Y9VYNL._AC_SL1500_.jpg"
                 alt="Backpacks"
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
               />
@@ -171,12 +171,12 @@ const Home = () => {
               </div>
             </Link>
             
-            <Link
+            <LinK
               to="/category/travel"
               className="group relative h-48 md:h-64 rounded-lg overflow-hidden shadow-paper hover:shadow-lg transition-shadow duration-200"
             >
               <img
-                src="https://png.pngtree.com/png-clipart/20230117/original/pngtree-cartoon-school-bag-illustration-png-image_8919104.png"
+                src="https://i5.walmartimages.com/asr/5a3afb11-e450-434e-a11e-5b275d2fcd9c_1.3960fd302ec4fb03b9208279739d0715.jpeg"
                 alt="Travel Bags"
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
               />
@@ -185,7 +185,7 @@ const Home = () => {
                   <h3 className="text-xl md:text-2xl font-display text-white text-center">Travel Bags</h3>
                 </div>
               </div>
-            </Link>
+            </LinK>
           </div>
         </div>
       </section>
