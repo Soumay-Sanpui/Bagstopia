@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import ProductCard from '../components/ProductCard';
@@ -33,12 +33,12 @@ const Home = () => {
   
   if (loading) {
     return (
-      <div className="min-h-screen flex flex-col">
+      <div className="min-h-screen bg-paper-light flex flex-col">
         <Navbar />
         <div className="flex-grow flex items-center justify-center">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
-            <p className="mt-4 text-gray-600">Loading featured products...</p>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-accent mx-auto"></div>
+            <p className="mt-4 text-pixel">Loading featured products...</p>
           </div>
         </div>
         <Footer />
@@ -48,12 +48,17 @@ const Home = () => {
   
   if (error) {
     return (
-      <div className="min-h-screen flex flex-col">
+      <div className="min-h-screen bg-paper-light flex flex-col">
         <Navbar />
         <div className="flex-grow flex items-center justify-center">
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
-            <strong className="font-bold">Error!</strong>
-            <span className="block sm:inline"> {error}</span>
+          <div className="bg-red-50 border border-red-200 text-red-600 px-6 py-4 rounded-lg max-w-md mx-4">
+            <div className="flex items-center">
+              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span className="font-medium">Error!</span>
+            </div>
+            <p className="mt-2">{error}</p>
           </div>
         </div>
         <Footer />
@@ -62,94 +67,123 @@ const Home = () => {
   }
   
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen bg-paper-light flex flex-col">
       <Navbar />
       
       {/* Hero Section */}
-      <section className="relative h-[600px] bg-gray-900">
+      <section className="relative h-[600px] overflow-hidden">
         <div className="absolute inset-0">
           <img
-            src="/images/hero-bg.jpg"
+            src="https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1920&q=80"
             alt="Hero background"
-            className="w-full h-full object-cover opacity-50"
+            className="w-full h-full object-cover"
           />
+          {/* <div className="absolute inset-0 bg-gradient-to-r from-[#2540b8] via-[#2540b880] to-transparent"></div> */}
+          <div className="absolute inset-0 opacity-40">
+            <div className="h-full w-full" style={{ 
+              backgroundImage: "linear-gradient(30deg, #ff3e3e 12%, transparent 12.5%, transparent 87%, #ff3e3e 87.5%, #ff3e3e), linear-gradient(150deg, #ff3e3e 12%, transparent 12.5%, transparent 87%, #ff3e3e 87.5%, #ff3e3e), linear-gradient(30deg, #ff3e3e 12%, transparent 12.5%, transparent 87%, #ff3e3e 87.5%, #ff3e3e), linear-gradient(150deg, #ff3e3e 12%, transparent 12.5%, transparent 87%, #ff3e3e 87.5%, #ff3e3e), linear-gradient(60deg, #ff3e3e77 25%, transparent 25.5%, transparent 75%, #ff3e3e77 75%, #ff3e3e77), linear-gradient(60deg, #ff3e3e77 25%, transparent 25.5%, transparent 75%, #ff3e3e77 75%, #ff3e3e77)",
+              backgroundSize: "80px 140px",
+              backgroundPosition: "0 0, 0 0, 40px 70px, 40px 70px, 0 0, 40px 70px"
+            }}></div>
+          </div>
         </div>
         <div className="relative container mx-auto px-4 h-full flex items-center">
-          <div className="max-w-2xl">
-            <h1 className="text-5xl font-bold text-white mb-6">
+          <div className="max-w-2xl animate-fade-in">
+            <h1 className="text-4xl md:text-5xl font-display text-white mb-6 leading-tight">
               Discover Your Perfect Bag
             </h1>
-            <p className="text-xl text-gray-200 mb-8">
+            <p className="text-lg md:text-xl text-white mb-8 leading-relaxed">
               Explore our collection of premium bags designed for every occasion.
               From stylish backpacks to elegant handbags, find the perfect companion
               for your journey.
             </p>
             <Link
               to="/products"
-              className="bg-blue-600 text-white px-8 py-3 rounded-md hover:bg-blue-700 transition-colors"
+              className="inline-flex items-center bg-white text-[#2540b8] px-6 md:px-8 py-3 rounded-md hover:bg-gray-100 transition-colors duration-200 font-medium"
             >
-              Shop Now
+              <span>Shop Now</span>
+              <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+              </svg>
             </Link>
           </div>
         </div>
       </section>
       
       {/* Featured Products */}
-      <section className="py-16">
+      <section className="py-12 md:py-16">
         <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold mb-8">Featured Products</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="text-center mb-8 md:mb-12">
+            <h2 className="text-2xl md:text-3xl font-display text-pixel-dark mb-4">Featured Products</h2>
+            <p className="text-pixel max-w-2xl mx-auto text-sm md:text-base">
+              Discover our most popular and highly-rated bags, carefully selected for their quality and style.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-8">
             {featuredProducts.map(product => (
-              <ProductCard key={product._id} product={product} />
+              <div key={product._id} className="transform hover:scale-105 transition-transform duration-200">
+                <ProductCard product={product} />
+              </div>
             ))}
           </div>
         </div>
       </section>
       
       {/* Categories */}
-      <section className="py-16 bg-gray-50">
+      <section className="py-12 md:py-16 bg-paper">
         <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold mb-8">Shop by Category</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="text-center mb-8 md:mb-12">
+            <h2 className="text-2xl md:text-3xl font-display text-pixel-dark mb-4">Shop by Category</h2>
+            <p className="text-pixel max-w-2xl mx-auto text-sm md:text-base">
+              Browse our collection by category and find the perfect bag for your needs.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8">
             <Link
               to="/category/backpacks"
-              className="relative h-64 rounded-lg overflow-hidden group"
+              className="group relative h-48 md:h-64 rounded-lg overflow-hidden shadow-paper hover:shadow-lg transition-shadow duration-200"
             >
               <img
-                src="/images/backpacks-category.jpg"
+                src="https://images-eu.ssl-images-amazon.com/images/I/814iogRTu5L.jpg"
                 alt="Backpacks"
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
               />
-              <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center">
-                <h3 className="text-2xl font-bold text-white">Backpacks</h3>
+              <div className="absolute inset-0 flex items-end justify-center">
+                <div className="w-full bg-gradient-to-t from-[#2540b8] to-transparent pt-16 pb-4 px-4">
+                  <h3 className="text-xl md:text-2xl font-display text-white text-center">Backpacks</h3>
+                </div>
               </div>
             </Link>
             
             <Link
               to="/category/handbags"
-              className="relative h-64 rounded-lg overflow-hidden group"
+              className="group relative h-48 md:h-64 rounded-lg overflow-hidden shadow-paper hover:shadow-lg transition-shadow duration-200"
             >
               <img
-                src="/images/handbags-category.jpg"
+                src="https://images.unsplash.com/photo-1584917865442-de89df76afd3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1920&q=80"
                 alt="Handbags"
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
               />
-              <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center">
-                <h3 className="text-2xl font-bold text-white">Handbags</h3>
+              <div className="absolute inset-0 flex items-end justify-center">
+                <div className="w-full bg-gradient-to-t from-[#2540b8] to-transparent pt-16 pb-4 px-4">
+                  <h3 className="text-xl md:text-2xl font-display text-white text-center">Handbags</h3>
+                </div>
               </div>
             </Link>
             
             <Link
               to="/category/travel"
-              className="relative h-64 rounded-lg overflow-hidden group"
+              className="group relative h-48 md:h-64 rounded-lg overflow-hidden shadow-paper hover:shadow-lg transition-shadow duration-200"
             >
               <img
-                src="/images/travel-category.jpg"
+                src="https://png.pngtree.com/png-clipart/20230117/original/pngtree-cartoon-school-bag-illustration-png-image_8919104.png"
                 alt="Travel Bags"
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
               />
-              <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center">
-                <h3 className="text-2xl font-bold text-white">Travel Bags</h3>
+              <div className="absolute inset-0 flex items-end justify-center">
+                <div className="w-full bg-gradient-to-t from-[#2540b8] to-transparent pt-16 pb-4 px-4">
+                  <h3 className="text-xl md:text-2xl font-display text-white text-center">Travel Bags</h3>
+                </div>
               </div>
             </Link>
           </div>
@@ -157,24 +191,34 @@ const Home = () => {
       </section>
       
       {/* Newsletter */}
-      <section className="py-16">
-        <div className="container mx-auto px-4">
-          <div className="max-w-2xl mx-auto text-center">
-            <h2 className="text-3xl font-bold mb-4">Stay Updated</h2>
-            <p className="text-gray-600 mb-8">
+      <section className="py-12 md:py-16 relative overflow-hidden">
+        <div className="absolute inset-0 opacity-10">
+          <div className="h-full w-full" style={{ 
+            backgroundImage: "linear-gradient(30deg, #2540b8 12%, transparent 12.5%, transparent 87%, #2540b8 87.5%, #2540b8), linear-gradient(150deg, #2540b8 12%, transparent 12.5%, transparent 87%, #2540b8 87.5%, #2540b8), linear-gradient(30deg, #2540b8 12%, transparent 12.5%, transparent 87%, #2540b8 87.5%, #2540b8), linear-gradient(150deg, #2540b8 12%, transparent 12.5%, transparent 87%, #2540b8 87.5%, #2540b8), linear-gradient(60deg, #2540b877 25%, transparent 25.5%, transparent 75%, #2540b877 75%, #2540b877), linear-gradient(60deg, #2540b877 25%, transparent 25.5%, transparent 75%, #2540b877 75%, #2540b877)",
+            backgroundSize: "80px 140px",
+            backgroundPosition: "0 0, 0 0, 40px 70px, 40px 70px, 0 0, 40px 70px"
+          }}></div>
+        </div>
+        <div className="container mx-auto px-4 relative">
+          <div className="max-w-2xl mx-auto text-center bg-white rounded-lg shadow-paper p-6 md:p-8">
+            <h2 className="text-2xl md:text-3xl font-display text-pixel-dark mb-4">Stay Updated</h2>
+            <p className="text-pixel mb-6 md:mb-8 text-sm md:text-base">
               Subscribe to our newsletter for the latest updates and exclusive offers.
             </p>
-            <form className="flex gap-4">
+            <form className="flex flex-col sm:flex-row gap-4">
               <input
                 type="email"
                 placeholder="Enter your email"
-                className="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="flex-1 px-4 py-2 border border-pixel-light rounded-md focus:outline-none focus:ring-2 focus:ring-[#2540b8] transition-colors text-sm md:text-base"
               />
               <button
                 type="submit"
-                className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition-colors"
+                className="bg-[#2540b8] text-white px-6 py-2 rounded-md hover:bg-[#1e3299] transition-colors flex items-center justify-center text-sm md:text-base"
               >
-                Subscribe
+                <span>Subscribe</span>
+                <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                </svg>
               </button>
             </form>
           </div>
