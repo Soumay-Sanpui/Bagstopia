@@ -1,4 +1,4 @@
-import { useParams } from 'react-router';
+import { useParams } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
@@ -6,12 +6,15 @@ import ProductCard from '../components/ProductCard';
 import FilterSidebar from '../components/FilterSidebar';
 import MobileFilters from '../components/MobileFilters';
 import useStore from '../store/useStore';
-import products from '../data/products';
+import { getProductsByCategory } from '../utils/productApi';
 import { applyAllFilters, sortProducts } from '../utils/filterUtils';
 
 const ProductCategory = () => {
   const { category } = useParams();
   const { filters, setFilter } = useStore();
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [sortOption, setSortOption] = useState('featured');
   
   // Category display names
@@ -23,10 +26,23 @@ const ProductCategory = () => {
   
   // Set category filter when category param changes
   useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        setLoading(true);
+        const data = await getProductsByCategory(category);
+        setProducts(data);
+      } catch (error) {
+        console.error('Error fetching products:', error);
+        setError('Failed to load products. Please try again later.');
+      } finally {
+        setLoading(false);
+      }
+    };
+    
     if (category) {
-      setFilter('category', category);
+      fetchProducts();
     }
-  }, [category, setFilter]);
+  }, [category]);
   
   // Get filtered and sorted products
   const sortedProducts = sortProducts(
@@ -41,6 +57,36 @@ const ProductCategory = () => {
   const handleSortChange = (e) => {
     setSortOption(e.target.value);
   };
+  
+  if (loading) {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <Navbar />
+        <div className="flex-grow flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
+            <p className="mt-4 text-gray-600">Loading products...</p>
+          </div>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+  
+  if (error) {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <Navbar />
+        <div className="flex-grow flex items-center justify-center">
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+            <strong className="font-bold">Error!</strong>
+            <span className="block sm:inline"> {error}</span>
+          </div>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
   
   return (
     <div className="min-h-screen flex flex-col">

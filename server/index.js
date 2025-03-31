@@ -1,6 +1,9 @@
 import express from "express";
 import cors from "cors";
 import userRouter from "./routes/user.route.js";
+import addressRouter from "./routes/address.route.js";
+import orderRouter from "./routes/order.route.js";
+import productRouter from "./routes/product.routes.js";
 import ctdb from "./utils/db.util.js";
 
 const PORT = 5000;
@@ -11,7 +14,11 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// API Routes
 app.use("/api/user", userRouter);
+app.use("/api/address", addressRouter);
+app.use("/api/order", orderRouter);
+app.use("/api/products", productRouter);
 
 app.use((err, req, res, next) => {
     console.error(err.stack);

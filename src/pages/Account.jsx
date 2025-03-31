@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import useStore from '../store/useStore';
+import api from '../utils/api';
 
 const Account = () => {
   const navigate = useNavigate();
@@ -21,15 +22,118 @@ const Account = () => {
     city: '',
     state: '',
     zipCode: '',
-    country: ''
+    country: '',
+    phone: ''
   });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [addresses, setAddresses] = useState([]);
+  const [selectedAddressId, setSelectedAddressId] = useState(null);
+  const [orders, setOrders] = useState([]);
+  const [orderLoading, setOrderLoading] = useState(false);
+  const [orderError, setOrderError] = useState('');
+
+  // Fetch user profile data from API
+  const fetchUserProfile = async () => {
+    if (!isAuthenticated || !user?.token) {
+      return;
+    }
+    
+    setLoading(true);
+    try {
+      const response = await api.get('/user/profile');
+      
+      if (response.data) {
+        const userData = {
+          id: response.data._id,
+          firstName: response.data.firstname,
+          lastName: response.data.lastname,
+          email: response.data.email,
+          isAdmin: response.data.isAdmin,
+          // Preserve the token from the current user
+          token: user.token,
+          // Add any additional fields from the profile
+          ...(response.data.address && { address: response.data.address }),
+          ...(response.data.phone && { phone: response.data.phone })
+        };
+        
+        // Update the store with the complete profile data
+        updateUserProfile(userData);
+      }
+    } catch (err) {
+      console.error('Error fetching profile:', err);
+      setError('Failed to load profile data. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Fetch user addresses from API
+  const fetchUserAddresses = async () => {
+    if (!isAuthenticated || !user?.token) {
+      return;
+    }
+    
+    setLoading(true);
+    try {
+      const response = await api.get('/address');
+      setAddresses(response.data);
+      
+      // If there's a default address, select it
+      const defaultAddress = response.data.find(addr => addr.isDefault);
+      if (defaultAddress) {
+        setSelectedAddressId(defaultAddress._id);
+      } else if (response.data.length > 0) {
+        setSelectedAddressId(response.data[0]._id);
+      }
+    } catch (err) {
+      console.error('Error fetching addresses:', err);
+      setError('Failed to load addresses. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Fetch user orders from API
+  const fetchUserOrders = async () => {
+    if (!isAuthenticated || !user?.token) {
+      return;
+    }
+    
+    setOrderLoading(true);
+    try {
+      // Use the correct endpoint for fetching user orders
+      const response = await api.get('/order/myorders');
+      
+      // Check if we got data
+      if (response.data && Array.isArray(response.data)) {
+        console.log('Orders fetched successfully:', response.data);
+        setOrders(response.data);
+      } else {
+        console.error('Invalid order data format:', response.data);
+        setOrderError('Received invalid order data format');
+      }
+    } catch (err) {
+      console.error('Error fetching orders:', err);
+      setOrderError('Failed to load orders. Please try again.');
+    } finally {
+      setOrderLoading(false);
+    }
+  };
 
   useEffect(() => {
     // Redirect if not authenticated
     if (!isAuthenticated) {
       navigate('/login');
+    } else {
+      // Fetch user profile data and addresses when component mounts
+      fetchUserProfile();
+      fetchUserAddresses();
+      fetchUserOrders();
     }
-    
+  }, [isAuthenticated, navigate]);
+  
+  useEffect(() => {
     // Initialize form data with user data
     if (user) {
       setProfileData({
@@ -45,11 +149,12 @@ const Account = () => {
           city: user.address.city || '',
           state: user.address.state || '',
           zipCode: user.address.zipCode || '',
-          country: user.address.country || ''
+          country: user.address.country || '',
+          phone: user.address.phone || ''
         });
       }
     }
-  }, [user, isAuthenticated, navigate]);
+  }, [user]);
 
   const handleProfileChange = (e) => {
     const { name, value } = e.target;
@@ -67,10 +172,99 @@ const Account = () => {
     setEditMode(false);
   };
 
-  const handleAddressSubmit = (e) => {
+  // Reset address form for creating a new address
+  const handleAddNewAddress = () => {
+    setAddressData({
+      street: '',
+      city: '',
+      state: '',
+      zipCode: '',
+      country: '',
+      phone: '',
+      isDefault: false
+    });
+    setSelectedAddressId(null);
+    setEditAddressMode(true);
+  };
+
+  // Load address data for editing
+  const handleEditAddress = (addressId) => {
+    const addressToEdit = addresses.find(addr => addr._id === addressId);
+    if (addressToEdit) {
+      setAddressData({
+        street: addressToEdit.street || '',
+        city: addressToEdit.city || '',
+        state: addressToEdit.state || '',
+        zipCode: addressToEdit.zipCode || '',
+        country: addressToEdit.country || '',
+        phone: addressToEdit.phone || '',
+        isDefault: addressToEdit.isDefault || false
+      });
+      setSelectedAddressId(addressId);
+      setEditAddressMode(true);
+    }
+  };
+
+  // Delete address
+  const handleDeleteAddress = async (addressId) => {
+    if (window.confirm('Are you sure you want to delete this address?')) {
+      try {
+        await api.delete(`/address/${addressId}`);
+        // Refresh addresses after deletion
+        fetchUserAddresses();
+      } catch (err) {
+        console.error('Error deleting address:', err);
+        setError('Failed to delete address. Please try again.');
+      }
+    }
+  };
+
+  // Set address as default
+  const handleSetDefaultAddress = async (addressId) => {
+    try {
+      await api.patch(`/address/${addressId}/default`);
+      // Refresh addresses after setting default
+      fetchUserAddresses();
+    } catch (err) {
+      console.error('Error setting default address:', err);
+      setError('Failed to set default address. Please try again.');
+    }
+  };
+
+  const handleAddressSubmit = async (e) => {
     e.preventDefault();
-    updateUserAddress(addressData);
-    setEditAddressMode(false);
+    setError('');
+    
+    try {
+      if (selectedAddressId) {
+        // Update existing address
+        await api.put(`/address/${selectedAddressId}`, addressData);
+      } else {
+        // Create new address
+        await api.post('/address', addressData);
+      }
+      
+      setEditAddressMode(false);
+      // Refresh addresses
+      fetchUserAddresses();
+    } catch (err) {
+      console.error('Error saving address:', err);
+      setError('Failed to save address. Please check your input and try again.');
+    }
+  };
+
+  // Cancel order
+  const handleCancelOrder = async (orderId) => {
+    if (window.confirm('Are you sure you want to cancel this order?')) {
+      try {
+        await api.put(`/order/${orderId}/cancel`);
+        // Refresh orders after cancellation
+        fetchUserOrders();
+      } catch (err) {
+        console.error('Error cancelling order:', err);
+        setOrderError('Failed to cancel order. Please try again.');
+      }
+    }
   };
 
   const handleLogout = () => {
@@ -240,13 +434,19 @@ const Account = () => {
                     <h2 className="text-2xl font-bold">Address Book</h2>
                     {!editAddressMode && (
                       <button 
-                        onClick={() => setEditAddressMode(true)}
+                        onClick={handleAddNewAddress}
                         className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
                       >
-                        Edit Address
+                        Add New Address
                       </button>
                     )}
                   </div>
+                  
+                  {error && (
+                    <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+                      {error}
+                    </div>
+                  )}
                   
                   {editAddressMode ? (
                     <form onSubmit={handleAddressSubmit}>
@@ -315,6 +515,29 @@ const Account = () => {
                             />
                           </div>
                         </div>
+                        <div>
+                          <label htmlFor="phone" className="block text-gray-700 mb-1">Phone Number (Optional)</label>
+                          <input
+                            type="text"
+                            id="phone"
+                            name="phone"
+                            value={addressData.phone}
+                            onChange={handleAddressChange}
+                            className="w-full px-4 py-2 border border-gray-300 rounded-md"
+                          />
+                        </div>
+                        <div>
+                          <label className="flex items-center">
+                            <input
+                              type="checkbox"
+                              name="isDefault"
+                              checked={addressData.isDefault}
+                              onChange={e => setAddressData(prev => ({ ...prev, isDefault: e.target.checked }))}
+                              className="mr-2"
+                            />
+                            <span>Set as default address</span>
+                          </label>
+                        </div>
                       </div>
                       
                       <div className="flex space-x-4">
@@ -322,7 +545,7 @@ const Account = () => {
                           type="submit"
                           className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
                         >
-                          Save Address
+                          {selectedAddressId ? 'Update Address' : 'Save Address'}
                         </button>
                         <button
                           type="button"
@@ -335,21 +558,58 @@ const Account = () => {
                     </form>
                   ) : (
                     <div>
-                      {user.address ? (
-                        <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                          <h3 className="font-semibold mb-2">Shipping Address</h3>
-                          <address className="not-italic">
-                            <p>{user.firstName} {user.lastName}</p>
-                            <p>{user.address.street}</p>
-                            <p>{user.address.city}, {user.address.state} {user.address.zipCode}</p>
-                            <p>{user.address.country}</p>
-                          </address>
+                      {loading ? (
+                        <div className="text-center py-4">
+                          <p>Loading addresses...</p>
+                        </div>
+                      ) : addresses.length > 0 ? (
+                        <div className="space-y-4">
+                          {addresses.map(address => (
+                            <div key={address._id} className={`p-4 rounded-lg border ${address.isDefault ? 'border-blue-400 bg-blue-50' : 'border-gray-200'}`}>
+                              <div className="flex justify-between items-start">
+                                <div>
+                                  {address.isDefault && (
+                                    <span className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded mb-2">Default</span>
+                                  )}
+                                  <address className="not-italic">
+                                    <p>{user.firstName} {user.lastName}</p>
+                                    <p>{address.street}</p>
+                                    <p>{address.city}, {address.state} {address.zipCode}</p>
+                                    <p>{address.country}</p>
+                                    {address.phone && <p>Phone: {address.phone}</p>}
+                                  </address>
+                                </div>
+                                <div className="flex space-x-2">
+                                  <button 
+                                    onClick={() => handleEditAddress(address._id)}
+                                    className="text-blue-600 hover:text-blue-800"
+                                  >
+                                    Edit
+                                  </button>
+                                  <button 
+                                    onClick={() => handleDeleteAddress(address._id)}
+                                    className="text-red-600 hover:text-red-800"
+                                  >
+                                    Delete
+                                  </button>
+                                  {!address.isDefault && (
+                                    <button 
+                                      onClick={() => handleSetDefaultAddress(address._id)}
+                                      className="text-green-600 hover:text-green-800"
+                                    >
+                                      Set as Default
+                                    </button>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          ))}
                         </div>
                       ) : (
                         <div className="text-center py-8">
-                          <p className="text-gray-600">No address saved yet.</p>
+                          <p className="text-gray-600">No addresses saved yet.</p>
                           <button 
-                            onClick={() => setEditAddressMode(true)}
+                            onClick={handleAddNewAddress}
                             className="mt-4 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
                           >
                             Add Address
@@ -366,7 +626,17 @@ const Account = () => {
                 <div>
                   <h2 className="text-2xl font-bold mb-6">Order History</h2>
                   
-                  {user.orders && user.orders.length > 0 ? (
+                  {orderError && (
+                    <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+                      {orderError}
+                    </div>
+                  )}
+                  
+                  {orderLoading ? (
+                    <div className="text-center py-8">
+                      <p className="text-gray-600">Loading orders...</p>
+                    </div>
+                  ) : orders.length > 0 ? (
                     <div className="overflow-x-auto">
                       <table className="min-w-full divide-y divide-gray-200">
                         <thead className="bg-gray-50">
@@ -389,13 +659,15 @@ const Account = () => {
                           </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
-                          {user.orders.map(order => (
-                            <tr key={order.id}>
+                          {orders.map(order => (
+                            <tr key={order._id}>
                               <td className="px-6 py-4 whitespace-nowrap">
-                                <span className="text-sm text-gray-900">{order.id}</span>
+                                <span className="text-sm text-gray-900">#{order._id.substring(order._id.length - 8)}</span>
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap">
-                                <span className="text-sm text-gray-900">{order.date}</span>
+                                <span className="text-sm text-gray-900">
+                                  {new Date(order.createdAt).toLocaleDateString()}
+                                </span>
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap">
                                 <span className="text-sm text-gray-900">₹{order.total.toLocaleString()}</span>
@@ -406,18 +678,40 @@ const Account = () => {
                                     ? 'bg-green-100 text-green-800' 
                                     : order.status === 'Processing'
                                     ? 'bg-yellow-100 text-yellow-800'
-                                    : 'bg-blue-100 text-blue-800'
+                                    : order.status === 'Shipped'
+                                    ? 'bg-blue-100 text-blue-800'
+                                    : 'bg-red-100 text-red-800'
                                 }`}>
                                   {order.status}
                                 </span>
                               </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                              <td className="px-6 py-4 whitespace-nowrap text-sm">
                                 <button 
-                                  className="text-blue-600 hover:text-blue-900"
-                                  onClick={() => navigate(`/order/${order.id}`)}
+                                  className="text-blue-600 hover:text-blue-900 mr-3"
+                                  onClick={() => navigate(`/order/${order._id}`)}
                                 >
-                                  View Details
+                                  Details
                                 </button>
+                                
+                                {(order.status === 'Processing' || order.status === 'Shipped') && (
+                                  <button 
+                                    className="text-red-600 hover:text-red-900"
+                                    onClick={() => handleCancelOrder(order._id)}
+                                  >
+                                    Cancel
+                                  </button>
+                                )}
+                                
+                                {order.trackingNumber && (
+                                  <a 
+                                    href={`https://www.tracking-url.com/${order.trackingNumber}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-purple-600 hover:text-purple-900 ml-3"
+                                  >
+                                    Track
+                                  </a>
+                                )}
                               </td>
                             </tr>
                           ))}

@@ -43,19 +43,37 @@ const Register = () => {
       return;
     }
     
-    await axios.post("http://localhost:5000/api/user/register",{
-      firstname: formData.firstName,
-      lastname: formData.lastName,
-      email: formData.email,
-      password: formData.confirmPassword,
-    }).then(()=> {
-      setSuccess(true)
-    }).catch((e) => {
-      console.log("Something went wrong while registering user!");
-      setError("User already exists !")
-    })
-    
-    if(success) {navigate("/login")}
+    try {
+      const response = await axios.post("http://localhost:5000/api/user/register", {
+        firstname: formData.firstName,
+        lastname: formData.lastName,
+        email: formData.email,
+        password: formData.confirmPassword,
+      });
+      
+      if (response.status === 201) {
+        const { user, token } = response.data;
+        
+        // Format user data to match the structure used in the app
+        const userData = {
+          id: user._id,
+          firstName: user.firstname,
+          lastName: user.lastname,
+          email: user.email,
+          isAdmin: user.isAdmin,
+          token: token
+        };
+        
+        // Save user data and log them in
+        login(userData);
+        
+        setSuccess(true);
+        navigate("/products");
+      }
+    } catch (error) {
+      console.error("Registration error:", error);
+      setError(error.response?.data?.message || "User already exists or registration failed");
+    }
   };
   
   return (

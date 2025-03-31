@@ -16,6 +16,7 @@ import Account from './pages/Account';
 import Checkout from './pages/Checkout';
 import useStore from './store/useStore';
 import OrderConfirmation from './pages/OrderConfirmation';
+import OrderDetail from './pages/OrderDetail';
 import SearchResults from './pages/SearchResults';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminProductList from './pages/admin/AdminProductList';
@@ -78,6 +79,11 @@ const App = () => {
       <Route path="/account" element={
         <ProtectedRoute>
           <Account />
+        </ProtectedRoute>
+      } />
+      <Route path="/order/:orderId" element={
+        <ProtectedRoute>
+          <OrderDetail />
         </ProtectedRoute>
       } />
       <Route path="/order-confirmation" element={

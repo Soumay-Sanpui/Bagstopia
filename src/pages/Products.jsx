@@ -1,16 +1,35 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import ProductCard from '../components/ProductCard';
 import FilterSidebar from '../components/FilterSidebar';
 import MobileFilters from '../components/MobileFilters';
 import useStore from '../store/useStore';
-import products from '../data/products';
+import { getAllProducts } from '../utils/productApi';
 import { applyAllFilters, sortProducts } from '../utils/filterUtils';
 
 const Products = () => {
   const { filters } = useStore();
   const [sortOption, setSortOption] = useState('featured');
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const data = await getAllProducts();
+        setProducts(data);
+      } catch (error) {
+        setError('Failed to load products. Please try again later.');
+        console.error('Error fetching products:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, []);
   
   // Apply filters and sort products
   const filteredProducts = applyAllFilters(products, {
@@ -66,7 +85,17 @@ const Products = () => {
             </div>
             
             {/* Products */}
-            {sortedProducts.length === 0 ? (
+            {loading ? (
+              <div className="text-center py-8">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
+                <p className="mt-4 text-gray-600">Loading products...</p>
+              </div>
+            ) : error ? (
+              <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+                <strong className="font-bold">Error!</strong>
+                <span className="block sm:inline"> {error}</span>
+              </div>
+            ) : sortedProducts.length === 0 ? (
               <div className="bg-white rounded-lg shadow-md p-8 text-center">
                 <h2 className="text-2xl font-semibold mb-4">No products found</h2>
                 <p className="text-gray-600 mb-4">Try adjusting your filters to find what you're looking for.</p>
@@ -74,7 +103,7 @@ const Products = () => {
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 {sortedProducts.map(product => (
-                  <ProductCard key={product.id} product={product} />
+                  <ProductCard key={product._id} product={product} />
                 ))}
               </div>
             )}

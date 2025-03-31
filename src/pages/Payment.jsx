@@ -1,12 +1,14 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import useStore from "../store/useStore";
+import api from "../utils/api";
 
 const Payment = () => {
-	const { cart, clearCart } = useStore();
+	const { cart, clearCart, user, createOrder } = useStore();
 	const navigate = useNavigate();
+	const [shippingAddress, setShippingAddress] = useState({});
 
 	const [paymentMethod, setPaymentMethod] = useState("creditCard");
 	const [paymentInfo, setPaymentInfo] = useState({
@@ -18,6 +20,14 @@ const Payment = () => {
 	});
 	const [isProcessing, setIsProcessing] = useState(false);
 	const [errors, setErrors] = useState({});
+
+	// Get shipping address from session storage or localStorage
+	useEffect(() => {
+		const storedShippingData = sessionStorage.getItem('shippingAddress');
+		if (storedShippingData) {
+			setShippingAddress(JSON.parse(storedShippingData));
+		}
+	}, []);
 
 	// Calculate totals (should ideally come from a context/store)
 	const subtotal = cart.reduce(
@@ -113,7 +123,7 @@ const Payment = () => {
 		}
 	};
 
-	const handleSubmit = (e) => {
+	const handleSubmit = async (e) => {
 		e.preventDefault();
 
 		if (!validateForm()) {
@@ -122,20 +132,71 @@ const Payment = () => {
 
 		setIsProcessing(true);
 
-		// Simulate payment processing
-		setTimeout(() => {
-			setIsProcessing(false);
+		try {
+			// Prepare order items
+			const orderItems = cart.map(item => ({
+				product: item.id,
+				name: item.name,
+				image: item.image,
+				price: item.price,
+				quantity: item.quantity
+			}));
 
-			// Order success - clear cart and redirect to confirmation
-			clearCart();
-			navigate("/order-confirmation", {
-				state: {
-					orderNumber: `BT-${Math.floor(100000 + Math.random() * 900000)}`,
-					orderDate: new Date().toISOString(),
-					total,
-				},
+			// Prepare shipping address from checkout data
+			const formattedShippingAddress = {
+				street: shippingAddress.address,
+				city: shippingAddress.city,
+				state: shippingAddress.state,
+				zipCode: shippingAddress.zipCode,
+				country: shippingAddress.country
+			};
+
+			// Create order object
+			const orderData = {
+				orderItems,
+				shippingAddress: formattedShippingAddress,
+				paymentMethod: 'Credit Card',
+				subtotal,
+				tax,
+				shipping,
+				total
+			};
+
+			// Create order in database
+			const result = await api.post('/order', orderData);
+			
+			if (result.data) {
+				console.log('Order created successfully:', result.data);
+				
+				// Simulate payment processing and update order payment status
+				const paymentResult = {
+					id: `PAY-${Math.floor(100000 + Math.random() * 900000)}`,
+					status: 'COMPLETED',
+					update_time: new Date().toISOString(),
+					email_address: user.email
+				};
+				
+				await api.put(`/order/${result.data._id}/pay`, { paymentResult });
+				
+				// Clear cart and redirect to confirmation page
+				clearCart();
+				navigate("/order-confirmation", {
+					state: {
+						orderId: result.data._id,
+						orderNumber: result.data._id.substring(result.data._id.length - 8),
+						orderDate: result.data.createdAt,
+						total,
+					},
+				});
+			}
+		} catch (error) {
+			console.error('Error creating order:', error);
+			setErrors({
+				...errors,
+				submit: 'There was a problem processing your payment. Please try again.'
 			});
-		}, 2000);
+			setIsProcessing(false);
+		}
 	};
 
 	// If cart is empty, redirect to cart page
@@ -167,6 +228,12 @@ const Payment = () => {
 			<div className="container mx-auto px-4 py-8 flex-grow">
 				<div className="max-w-6xl mx-auto">
 					<h1 className="text-3xl font-bold mb-8">Payment</h1>
+
+					{errors.submit && (
+						<div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+							{errors.submit}
+						</div>
+					)}
 
 					<div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
 						{/* Payment Form */}

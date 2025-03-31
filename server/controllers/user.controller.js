@@ -1,4 +1,7 @@
 import User from '../models/user.model.js';
+import jwt from 'jsonwebtoken';
+
+const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 
 export const register = async (req, res) => {
     try {
@@ -20,6 +23,12 @@ export const register = async (req, res) => {
         // Save user
         await user.save();
 
+        // Generate JWT token
+        const token = jwt.sign(
+            { userId: user._id, isAdmin: user.isAdmin },
+            JWT_SECRET,
+            { expiresIn: '24h' }
+        );
 
         // Return user data (excluding password) and token
         const userResponse = {
@@ -32,6 +41,7 @@ export const register = async (req, res) => {
 
         res.status(201).json({
             user: userResponse,
+            token
         });
     } catch (error) {
         console.error('Registration error:', error);
@@ -57,6 +67,13 @@ export const login = async (req, res) => {
             return res.status(403).json({message: 'Invalid Credentials'});
         }
 
+        // Generate JWT token
+        const token = jwt.sign(
+            { userId: user._id, isAdmin: user.isAdmin },
+            JWT_SECRET,
+            { expiresIn: '24h' }
+        );
+
         // Return user data (excluding password) and token
         const userResponse = {
             _id: user._id,
@@ -68,6 +85,7 @@ export const login = async (req, res) => {
 
         return res.status(200).json({
             user: userResponse,
+            token
         });
     } catch (error) {
         console.error('Login error:', error);

@@ -1,34 +1,82 @@
-import { useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import ProductCard from '../components/ProductCard';
 import FilterSidebar from '../components/FilterSidebar';
 import MobileFilters from '../components/MobileFilters';
 import useStore from '../store/useStore';
-import products from '../data/products';
+import { getAllProducts } from '../utils/productApi';
 import { applyAllFilters, sortProducts } from '../utils/filterUtils';
 
 const SearchResults = () => {
+  const [searchParams] = useSearchParams();
+  const query = searchParams.get('q') || '';
   const { searchTerm, filters } = useStore();
+  const [products, setProducts] = useState([]);
+  const [filteredProducts, setFilteredProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [sortOption, setSortOption] = useState('featured');
   
-  // Filter and search products based on search term and filters
-  const filteredProducts = useMemo(() => {
-    // Apply all filters
-    const filtered = applyAllFilters(products, {
-      searchTerm,
-      category: filters.category,
-      priceRange: filters.priceRange,
-      rating: filters.rating
-    });
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        setLoading(true);
+        const data = await getAllProducts();
+        setProducts(data);
+        
+        // Filter products based on search query
+        const filtered = data.filter(product => {
+          const searchTerm = query.toLowerCase();
+          return (
+            product.name.toLowerCase().includes(searchTerm) ||
+            product.description.toLowerCase().includes(searchTerm) ||
+            product.category.toLowerCase().includes(searchTerm)
+          );
+        });
+        
+        setFilteredProducts(filtered);
+      } catch (error) {
+        console.error('Error fetching products:', error);
+        setError('Failed to load products. Please try again later.');
+      } finally {
+        setLoading(false);
+      }
+    };
     
-    // Sort the filtered products
-    return sortProducts(filtered, sortOption);
-  }, [searchTerm, filters, sortOption]);
+    fetchProducts();
+  }, [query]);
   
-  const handleSortChange = (e) => {
-    setSortOption(e.target.value);
-  };
+  if (loading) {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <Navbar />
+        <div className="flex-grow flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
+            <p className="mt-4 text-gray-600">Searching products...</p>
+          </div>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+  
+  if (error) {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <Navbar />
+        <div className="flex-grow flex items-center justify-center">
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+            <strong className="font-bold">Error!</strong>
+            <span className="block sm:inline"> {error}</span>
+          </div>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
   
   return (
     <div className="min-h-screen flex flex-col">
@@ -37,7 +85,7 @@ const SearchResults = () => {
       <div className="container mx-auto px-4 py-8 flex-grow">
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-2">
-            {searchTerm ? `Search Results for "${searchTerm}"` : 'All Products'}
+            {query ? `Search Results for "${query}"` : 'All Products'}
           </h1>
           <p className="text-gray-600">{filteredProducts.length} products found</p>
         </div>
@@ -61,7 +109,7 @@ const SearchResults = () => {
                   id="sort" 
                   className="border rounded px-3 py-1.5"
                   value={sortOption}
-                  onChange={handleSortChange}
+                  onChange={(e) => setSortOption(e.target.value)}
                 >
                   <option value="featured">Featured</option>
                   <option value="price-low">Price: Low to High</option>
@@ -75,7 +123,7 @@ const SearchResults = () => {
             {filteredProducts.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
                 {filteredProducts.map(product => (
-                  <ProductCard key={product.id} product={product} />
+                  <ProductCard key={product._id} product={product} />
                 ))}
               </div>
             ) : (
