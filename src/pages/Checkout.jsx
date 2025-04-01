@@ -14,7 +14,7 @@ const Checkout = () => {
     city: user?.address?.city || '',
     state: user?.address?.state || '',
     zipCode: user?.address?.zipCode || '',
-    country: user?.address?.country || '',
+    country: 'india',
     phone: user?.phone || '',
   });
   
@@ -25,7 +25,7 @@ const Checkout = () => {
     city: user?.address?.city || '',
     state: user?.address?.state || '',
     zipCode: user?.address?.zipCode || '',
-    country: user?.address?.country || '',
+    country: 'india',
     phone: user?.phone || '',
   });
   
