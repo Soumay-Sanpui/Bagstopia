@@ -32,20 +32,20 @@ const useStore = create(
       },
       
       // Cart actions
-      addToCart: (product) => 
-        set((state) => {
-          const existingItem = state.cart.find(item => item.id === product.id);
-          if (existingItem) {
-            return {
-              cart: state.cart.map(item => 
-                item.id === product.id 
-                  ? { ...item, quantity: item.quantity + 1 } 
-                  : item
-              )
-            };
-          }
-          return { cart: [...state.cart, { ...product, quantity: 1 }] };
-        }),
+      addToCart: (product, quantity = 1) => 
+  set((state) => {
+    const existingItem = state.cart.find(item => item.id === product.id);
+    if (existingItem) {
+      return {
+        cart: state.cart.map(item => 
+          item.id === product.id 
+            ? { ...item, quantity: item.quantity + quantity } 
+            : item
+        )
+      };
+    }
+    return { cart: [...state.cart, { ...product, quantity }] };
+  }),
       
       removeFromCart: (productId) =>
         set((state) => ({
