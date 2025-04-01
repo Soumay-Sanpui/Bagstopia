@@ -48,12 +48,9 @@ const ProductDetail = () => {
   };
   
   const handleAddToCart = () => {
-    if (product) {
-      // Add product to cart with the selected quantity
-      for (let i = 0; i < quantity; i++) {
-        addToCart(product);
-      }
-    }
+  if (product) {
+    addToCart(product, quantity);
+  }
   };
   
   if (loading) {
